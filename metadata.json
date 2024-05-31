@@ -1,0 +1,7 @@
+{
+    "callable": "Starfield",
+    "name": "Starfield",
+    "category": "visual",
+    "hidden": false,
+    "path": "apps.starfield.app"
+}
