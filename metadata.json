@@ -1,7 +1,7 @@
 {
     "callable": "Starfield",
     "name": "Starfield",
-    "category": "visual",
+    "category": "Badge",
     "hidden": false,
     "path": "apps.starfield.app"
 }
