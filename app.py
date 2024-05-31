@@ -1,25 +1,32 @@
-import random
-import math
 import app
+import math
+import random
 
 from app_components import clear_background
 from events.input import Buttons, BUTTON_TYPES
 
+class Star:
+    def __init__(self, x, y, speed, size):
+        self.x = x
+        self.y = y
+        self.speed = speed
+        self.size = size
+
 class Starfield(app.App):
     def __init__(self):
         self.button_states = Buttons(self)
-        self.stars = self.create_stars(100)  # Create 100 stars
-        self.speed = 0.05  # Speed of star movement
+        self.stars = self.create_stars(100)
 
     def create_stars(self, num_stars):
         stars = []
         for _ in range(num_stars):
-            star = {
-                'x': random.uniform(-1, 1),
-                'y': random.uniform(-1, 1),
-                'z': random.uniform(0.1, 1)
-            }
-            stars.append(star)
+            angle = random.uniform(0, 2 * math.pi)
+            distance = random.uniform(0, 1)
+            speed = random.uniform(1, 1.5)
+            size = random.uniform(1, 3)
+            x = math.cos(angle) * distance
+            y = math.sin(angle) * distance
+            stars.append(Star(x, y, speed, size))
         return stars
 
     def update(self, delta):
@@ -28,30 +35,28 @@ class Starfield(app.App):
             self.minimise()
         
         for star in self.stars:
-            star['z'] -= self.speed * delta
-            if star['z'] <= 0:
-                star['x'] = random.uniform(-1, 1)
-                star['y'] = random.uniform(-1, 1)
-                star['z'] = 1
+            star.x += star.x * star.speed
+            star.y += star.y * star.speed
+            
+            # If the star moves out of bounds, reset it to the center
+            if abs(star.x) > 1 or abs(star.y) > 1:
+                angle = random.uniform(0, 2 * math.pi)
+                distance = random.uniform(0, 0.1)
+                star.x = math.cos(angle) * distance
+                star.y = math.sin(angle) * distance
+                star.speed = random.uniform(1, 1.5)
+                star.size = random.uniform(1, 3)
 
     def draw(self, ctx):
-        clear_background(ctx)  # Clear the screen
+        clear_background(ctx)
         ctx.save()
-
-        ctx.rgb(0, 0, 0).rectangle(-1, -1, 2, 2).fill()  # Black background
-
-        ctx.rgb(1, 1, 1)  # White color for stars
+        ctx.translate(0, 0)
+        ctx.scale(1, 1)
+        
         for star in self.stars:
-            sx = star['x'] / star['z']
-            sy = star['y'] / star['z']
-            size = 0.01 / star['z']
-
-            ctx.save()
-            ctx.translate(sx * 100, sy * 100)  # Scaling up the coordinates for better visibility
-            ctx.scale(size * 100, size * 100)  # Adjusting the size of the stars
-            ctx.arc(0, 0, 1, 0, 2 * math.pi, True).fill()  # Drawing circles with arc method
-            ctx.restore()
-
+            ctx.rgb(1, 1, 1).begin_path()
+            ctx.arc(star.x * 120, star.y * 120, star.size, 0, 2 * math.pi, True).fill()
+        
         ctx.restore()
 
 __app_export__ = Starfield
