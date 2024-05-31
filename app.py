@@ -18,6 +18,19 @@ class Starfield(app.App):
     def __init__(self):
         self.button_states = Buttons(self)
         self.stars = self.create_stars(100)
+        self.colors = [
+            (1, 1, 1),  # White
+            (0, 1, 0),  # Green
+            (1, 0, 0),  # Red
+            (0, 0, 1),  # Blue
+            (1, 1, 0),  # Yellow
+            (0, 1, 1),  # Cyan
+            (1, 0, 1),  # Magenta
+            (1, 0.5, 0),  # Orange
+            (0.5, 0, 0.5),  # Purple
+            (0.5, 0.5, 0.5)  # Gray
+        ]
+        self.current_color_index = 0
 
     def create_stars(self, num_stars):
         stars = []
@@ -34,6 +47,11 @@ class Starfield(app.App):
     def update(self, delta):
         if self.button_states.get(BUTTON_TYPES["CANCEL"]):
             self.button_states.clear()
+            self.minimise()
+        
+        if self.button_states.get(BUTTON_TYPES["RIGHT"]):
+            self.current_color_index = (self.current_color_index + 1) % len(self.colors)
+            self.button_states.clear()  # Clear the button state to handle single press
         
         for star in self.stars:
             # Update previous position before moving the star
@@ -60,9 +78,12 @@ class Starfield(app.App):
         ctx.translate(0, 0)
         ctx.scale(1, 1)
         
+        # Get the current color
+        current_color = self.colors[self.current_color_index]
+        
         # Draw the stars with motion blur
         for star in self.stars:
-            ctx.rgb(1, 1, 1).begin_path()
+            ctx.rgb(*current_color).begin_path()
             ctx.move_to(star.prev_x * 120, star.prev_y * 120)
             ctx.line_to(star.x * 120, star.y * 120)
             ctx.stroke()
