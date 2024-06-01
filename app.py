@@ -1,7 +1,6 @@
 import app
 import math
 import random
-
 from app_components import clear_background
 from events.input import Buttons, BUTTON_TYPES
 
@@ -16,6 +15,8 @@ class Star:
 
 class Starfield(app.App):
     def __init__(self):
+        self.max_speed = 1.3
+        self.alpha = False
         self.button_states = Buttons(self)
         self.stars = self.create_stars(100)
         self.colors = [
@@ -49,10 +50,14 @@ class Starfield(app.App):
             self.button_states.clear()
             self.minimise()
         
+        if self.button_states.get(BUTTON_TYPES["CONFIRM"]):
+            self.alpha = not self.alpha
+            self.button_states.clear()
+        
         if self.button_states.get(BUTTON_TYPES["RIGHT"]):
             self.current_color_index = (self.current_color_index + 1) % len(self.colors)
-            self.button_states.clear()  # Clear the button state to handle single press
-        
+            self.button_states.clear()
+
         for star in self.stars:
             # Update previous position before moving the star
             star.prev_x = star.x
@@ -64,12 +69,12 @@ class Starfield(app.App):
             # If the star moves out of bounds, reset it to the center
             if abs(star.x) > 1 or abs(star.y) > 1:
                 angle = random.uniform(0, 2 * math.pi)
-                distance = random.uniform(0, 0.1)
+                distance = random.uniform(0, 0.2)
                 star.x = math.cos(angle) * distance
                 star.y = math.sin(angle) * distance
                 star.prev_x = star.x
                 star.prev_y = star.y
-                star.speed = random.uniform(1, 2)
+                star.speed = random.uniform(1, self.max_speed)
                 star.size = random.uniform(1, 3)
 
     def draw(self, ctx):
@@ -81,9 +86,14 @@ class Starfield(app.App):
         # Get the current color
         current_color = self.colors[self.current_color_index]
         
-        # Draw the stars with motion blur
+        # Draw the stars with motion blur and transparency
         for star in self.stars:
-            ctx.rgb(*current_color).begin_path()
+            if self.alpha:
+                distance_from_center = math.sqrt(star.x**2 + star.y**2)
+                alpha = distance_from_center
+                ctx.rgba(current_color[0], current_color[1], current_color[2], alpha).begin_path()
+            else:
+                ctx.rgb(*current_color).begin_path()
             ctx.move_to(star.prev_x * 120, star.prev_y * 120)
             ctx.line_to(star.x * 120, star.y * 120)
             ctx.stroke()
