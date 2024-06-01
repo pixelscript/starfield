@@ -3,7 +3,10 @@ import math
 import random
 from app_components import clear_background
 from events.input import Buttons, BUTTON_TYPES
-
+from system.eventbus import eventbus
+from system.patterndisplay.events import *
+from tildagonos import tildagonos
+import asyncio
 class Star:
     def __init__(self, x, y, speed, size):
         self.x = x
@@ -18,6 +21,8 @@ class Starfield(app.App):
         self.max_speed = 1.3
         self.alpha = False
         self.button_states = Buttons(self)
+        eventbus.emit(PatternDisable())
+        self._make_black()
         self.stars = self.create_stars(100)
         self.colors = [
             (1, 1, 1),  # White
@@ -31,7 +36,33 @@ class Starfield(app.App):
             (0.5, 0, 0.5),  # Purple
             (0.5, 0.5, 0.5)  # Gray
         ]
+        self.colors_neo = [
+            (255, 255, 255),  # White
+            (0, 255, 0),      # Green
+            (255, 0, 0),      # Red
+            (0, 0, 255),      # Blue
+            (255, 255, 0),    # Yellow
+            (0, 255, 255),    # Cyan
+            (255, 0, 255),    # Magenta
+            (255, 128, 0),    # Orange
+            (128, 0, 128),    # Purple
+            (128, 128, 128)   # Gray
+        ]
         self.current_color_index = 0
+        
+    def _make_black(self):
+        asyncio.sleep(0.5)
+        for i in range(1, 13):
+            tildagonos.leds[i] = (0, 0, 0)
+        tildagonos.leds.write()
+    
+    def make_random_white(self):
+        for i in range(1, 13):
+            if random.random() < 0.5:
+                tildagonos.leds[i] = (self.colors_neo[self.current_color_index])
+            else:
+                tildagonos.leds[i] = (0, 0, 0)
+        tildagonos.leds.write()
 
     def create_stars(self, num_stars):
         stars = []
@@ -46,6 +77,7 @@ class Starfield(app.App):
         return stars
 
     def update(self, delta):
+        self.make_random_white()
         if self.button_states.get(BUTTON_TYPES["CANCEL"]):
             self.button_states.clear()
             self.minimise()
